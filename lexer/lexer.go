@@ -29,8 +29,11 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+// NextToken - Get next token
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
+
+	l.skipWhitespace()
 
 	// Create a token cased on the character recieved
 	switch l.ch {
@@ -53,6 +56,17 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	default:
+		if isLetter(l.ch) {
+			tok.Literal = l.readIdentifier()
+			tok.Type = token.LookupIdent(tok.Literal)
+			return tok
+		} else if isDigit(l.ch) {
+			tok.Literal = l.readNumber()
+			tok.Type = token.INT
+			return tok
+		}
+		tok = newToken(token.ILLEGAL, l.ch)
 	}
 
 	// Read next char to memory
@@ -60,6 +74,46 @@ func (l *Lexer) NextToken() token.Token {
 	return tok
 }
 
+func (l *Lexer) readIdentifier() string {
+	// Get the current position of ch
+	position := l.position
+	// Loop until we encounter a 0,
+	// meaning that it's not a valid character,
+	// which meands there's a space or eof
+	// In this operation, the current position is also update
+	// via readChar()
+	for isLetter(l.ch) {
+		l.readChar()
+	}
+
+	// Return the substring from where we started,
+	// till before encountered a 0
+	return l.input[position:l.position]
+}
+
+func isLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
+}
+
+func (l *Lexer) skipWhitespace() {
+	// If we encounter any whitespace, move forward a character
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+		l.readChar()
+	}
+}
+
+func (l *Lexer) readNumber() string {
+	position := l.position
+	for isDigit(l.ch) {
+		l.readChar()
+	}
+	return l.input[position:l.position]
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
 }
