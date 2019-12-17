@@ -1,2 +1,2 @@
 # Monkey
-Monkey, a programming language
+Monkey, an interpreted programming language
