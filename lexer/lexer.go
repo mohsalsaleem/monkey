@@ -35,7 +35,7 @@ func (l *Lexer) NextToken() token.Token {
 
 	l.skipWhitespace()
 
-	// Create a token cased on the character recieved
+	// Create a token based on the current character
 	switch l.ch {
 	case '=':
 		tok = newToken(token.ASSIGN, l.ch)
